@@ -7,13 +7,17 @@ from xblock.core import XBlock
 from xblock.fields import Scope, String, Boolean, DateTime, Float
 from xblock.fragment import Fragment
 
+from xblockutils.studio_editable import StudioEditableXBlockMixin
+
+
 def resource_string(path):
     """Handy helper for getting resources from our kit."""
     data = pkg_resources.resource_string(__name__, path)
     return data.decode("utf8")
 
 
-class DoneXBlock(XBlock):
+XBlock.wants('settings')
+class DoneXBlock(StudioEditableXBlockMixin, XBlock):
     """
     Show a toggle which lets students mark things as done.
     """
@@ -25,11 +29,34 @@ class DoneXBlock(XBlock):
     )
 
     align = String(
-        scope=Scope.settings,
+        scope=Scope.content,
         help="Align left/right/center",
         default="left"
     )
 
+    done_scope = String(
+        scope=Scope.content,
+        help="Scope of completion.  Marking a 'Course' scope Done component complete triggers grading request.", 
+        values=[
+            {"display_name": "Section", "value": "block"},
+            {"display_name": "Course", "value": "course"}
+        ],
+        default="block"
+    )
+
+    button_text_before = String(
+        scope=Scope.content,
+        help="Text displayed on the button before completion", 
+        default="Mark as complete"
+    )
+
+    button_text_after = String(
+        scope=Scope.content,
+        help="Text displayed on the button after completion", 
+        default="Mark as incomplete"
+    )
+
+    editable_fields = ['align', 'done_scope', 'button_text_before', 'button_text_after']
     has_score = True
 
     # pylint: disable=unused-argument
@@ -76,14 +103,6 @@ class DoneXBlock(XBlock):
                                           'align': self.align.lower()})
         return frag
 
-    def studio_view(self, _context=None):  # pylint: disable=unused-argument
-        '''
-        Minimal view with no configuration options giving some help text.
-        '''
-        html = resource_string("static/html/studioview.html")
-        frag = Fragment(html)
-        return frag
-
     @staticmethod
     def workbench_scenarios():
         """A canned scenario for display in the workbench."""
@@ -104,18 +123,18 @@ class DoneXBlock(XBlock):
     # It should be included as a mixin.
 
     display_name = String(
-        default="Completion", scope=Scope.settings,
+        default="Completion", scope=Scope.content,
         help="Display name"
     )
 
     start = DateTime(
-        default=None, scope=Scope.settings,
+        default=None, scope=Scope.content,
         help="ISO-8601 formatted string representing the start date "
              "of this assignment. We ignore this."
     )
 
     due = DateTime(
-        default=None, scope=Scope.settings,
+        default=None, scope=Scope.content,
         help="ISO-8601 formatted string representing the due date "
              "of this assignment. We ignore this."
     )
@@ -126,7 +145,7 @@ class DoneXBlock(XBlock):
               "If the value is not set, the problem is worth the sum of the "
               "option point values."),
         values={"min": 0, "step": .1},
-        scope=Scope.settings
+        scope=Scope.content
     )
 
     def has_dynamic_children(self):
