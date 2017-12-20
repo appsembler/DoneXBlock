@@ -1,6 +1,7 @@
 """ Show a toggle which lets students mark things as done."""
 
 import pkg_resources
+import re
 import uuid
 
 from xblock.core import XBlock
@@ -87,13 +88,23 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
         when viewing courses.
         """
 
+        def css_content_escape(inputstr):
+            """
+            escape strings for CSS content attribute
+            """
+            # https://stackoverflow.com/a/25699953
+            css_content_re = r'''['"\n\\]'''
+            return re.sub(css_content_re, lambda m: '\\{:X} '.format(ord(m.group())), inputstr)    
+        
+        button_text_before = css_content_escape(self.button_text_before)
+        button_text_after = css_content_escape(self.button_text_after)
         status_button_text = self.button_text_before if self.done else self.button_text_after
 
         html_resource = resource_string("static/html/done.html")
         html = html_resource.format(done=self.done,
                                     id=uuid.uuid1(0),
-                                    button_text_before=self.button_text_before,
-                                    button_text_after=self.button_text_after,
+                                    button_text_before=button_text_before,
+                                    button_text_after=button_text_after,
                                     button_text=status_button_text,
                                     )
 

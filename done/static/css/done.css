@@ -15,8 +15,8 @@
 }
 
 .done_onoffswitch {
-    position: relative; width: 180px;
-    width: 180px;
+    position: relative;
+    width: auto;
     -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
 }
 
