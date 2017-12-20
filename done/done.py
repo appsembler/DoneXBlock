@@ -86,9 +86,17 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
         The primary view of the DoneXBlock, shown to students
         when viewing courses.
         """
+
+        status_button_text = self.button_text_before if self.done else self.button_text_after
+
         html_resource = resource_string("static/html/done.html")
         html = html_resource.format(done=self.done,
-                                    id=uuid.uuid1(0))
+                                    id=uuid.uuid1(0),
+                                    button_text_before=self.button_text_before,
+                                    button_text_after=self.button_text_after,
+                                    button_text=status_button_text,
+                                    )
+
         (unchecked_png, checked_png) = (
             self.runtime.local_resource_url(self, x) for x in
             ('public/check-empty.png', 'public/check-full.png')
@@ -100,7 +108,8 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
         frag.initialize_js("DoneXBlock", {'state': self.done,
                                           'unchecked': unchecked_png,
                                           'checked': checked_png,
-                                          'align': self.align.lower()})
+                                          'align': self.align.lower(),
+                                          'scope': self.done_scope})
         return frag
 
     @staticmethod
