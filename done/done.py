@@ -4,6 +4,8 @@ import pkg_resources
 import re
 import uuid
 
+from django.utils.translation import ugettext as _
+
 from xblock.core import XBlock
 from xblock.fields import Scope, String, Boolean, DateTime, Float
 from xblock.fragment import Fragment
@@ -30,14 +32,16 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
     )
 
     align = String(
+        display_name=_("Alignment"),
         scope=Scope.content,
         help="Align left/right/center",
         default="left"
     )
 
     done_scope = String(
+        display_name=_("Scope"),
         scope=Scope.content,
-        help="Scope of completion.  Marking a 'Course' scope Done component complete triggers grading request.", 
+        help="Scope of completion.  Marking a 'Course' scope Done component complete triggers course grading.", 
         values=[
             {"display_name": "Section", "value": "block"},
             {"display_name": "Course", "value": "course"}
@@ -46,12 +50,14 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
     )
 
     button_text_before = String(
+        display_name=_("Button text (incomplete)"),
         scope=Scope.content,
         help="Text displayed on the button before completion", 
         default="Mark as complete"
     )
 
     button_text_after = String(
+        display_name=_("Button text (complete)"),
         scope=Scope.content,
         help="Text displayed on the button after completion", 
         default="Mark as incomplete"
@@ -65,8 +71,10 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
     def toggle_button(self, data, suffix=''):
         """
         Ajax call when the button is clicked. Input is a JSON dictionary
-        with one boolean field: `done`. This will save this in the
+        with two fields: a boolean `done` and a `scope` which can be either
+        `block` or `course`. This will save this in the
         XBlock field, and then issue an appropriate grade.
+        If `scope` is `course` then request a grade on the entire course. 
         """
         if 'done' in data:
             self.done = data['done']
