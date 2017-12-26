@@ -37,13 +37,21 @@ function DoneXBlock(runtime, element, data) {
     $('.done_onoffswitch', element).addClass("done_animated");
     $('.done_onoffswitch-checkbox', element).change(function(){
         var checked = $('.done_onoffswitch-checkbox', element).prop("checked");
-        $.ajax({
-        type: "POST",
-        url: handlerUrl,
-        data: JSON.stringify({'done':checked, 'scope':data['scope']})
-        });
-        Logger.log("edx.done.toggled", {'done': checked});
-        update_knob(element, data);
+        return $.ajax({
+            type: "POST",
+            url: handlerUrl,
+            data: JSON.stringify({'done':checked, 'scope':data['scope']})
+        })
+            .done(function(result) {
+                if (result.success == 'success') {
+                    Logger.log("edx.done.toggled", {'done': checked});
+                    update_knob(element, data);
+                }
+                else {
+                   $('.done_onoffswitch-checkbox', element).prop("checked", !(checked));
+                   if (data.scope == 'course') $('.done_onoffswitch-checkbox', element).prop("disabled", "disabled"); 
+                }
+            });
     });
     });
 }
