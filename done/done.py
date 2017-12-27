@@ -91,26 +91,31 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
         student = self.runtime.get_real_user(anon_id) if self.runtime.get_real_user is not None else None
 
         if 'done' in data:
-            self.done = data['done']
-            if data['done']:
-                grade = 1
-            else:
-                grade = 0
-            grade_event = {'value': grade, 'max_value': 1}
-            if student:
-                self.runtime.publish(self, 'grade', grade_event)
-                # This should move to self.runtime.publish, once that pipeline
-                # is finished for XBlocks.
-                self.runtime.publish(self, "edx.done.toggled", {'done': self.done})
-                success = 'success'
 
-                if data['scope'] == 'course' and grade == 1:
-                    # request grading on whole course if in the LMS with a real student
-                    course_key = self.runtime.course_id
-                    cert_status = generate_user_certificates(student, course_key, course=None, insecure=False, 
-                                                             generation_mode='batch', forced_grade=None)
-                    # if cert_status in ():
+            # don't allow course-scoped to be "un-done"
+            if not data['done'] and self.done == 1 and self.done_scope == 'course':
+                return {'state': self.done, 'success': success}
+            else:
+                self.done = data['done']
+                if data['done']:
+                    grade = 1
+                else:
+                    grade = 0
+                grade_event = {'value': grade, 'max_value': 1}
+                if student:
+                    self.runtime.publish(self, 'grade', grade_event)
+                    # This should move to self.runtime.publish, once that pipeline
+                    # is finished for XBlocks.
+                    self.runtime.publish(self, "edx.done.toggled", {'done': self.done})
                     success = 'success'
+
+                    if data['scope'] == 'course' and grade == 1:
+                        # request grading on whole course if in the LMS with a real student
+                        course_key = self.runtime.course_id
+                        cert_status = generate_user_certificates(student, course_key, course=None, insecure=False, 
+                                                                 generation_mode='batch', forced_grade=None)
+                        # if cert_status in ():
+                        success = 'success'
                             
         return {'state': self.done, 'success': success}
 
