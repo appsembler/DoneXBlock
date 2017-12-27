@@ -29,6 +29,10 @@
     border: 2px solid #999999; border-radius: 10px;
 }
 
+.done_onoffswitch-label.disabled {
+    cursor: not-allowed;
+}
+
 .done_onoffswitch-inner {
     display: block; width: 200%; margin-left: -100%;
 }
