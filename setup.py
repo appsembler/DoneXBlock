@@ -45,7 +45,7 @@ def is_requirement(line):
 
 setup(
     name='done-xblock',
-    version='2.0.4',
+    version='2.0.5-unreleased-appsembler-course-completion',
     description='done XBlock',   # TODO: write a better description.
     classifiers=[
         'Programming Language :: Python :: 2',
