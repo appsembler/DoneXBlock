@@ -1,18 +1,18 @@
 """ Show a toggle which lets students mark things as done."""
 
-import pkg_resources
 import re
 import uuid
 
 from django.utils.translation import ugettext as _
-
+import pkg_resources
 from xblock.core import XBlock
-from xblock.fields import Scope, String, Boolean, DateTime, Float
-from xblock.fragment import Fragment
+from xblock.fields import Boolean, DateTime, Float, Scope, String
+from web_fragments.fragment import Fragment
+
 
 from xblockutils.studio_editable import StudioEditableXBlockMixin
 
-from certificates.api import generate_user_certificates
+from lms.djangoapps.certificates.api import generate_user_certificates
 
 
 def resource_string(path):
@@ -44,7 +44,7 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
     done_scope = String(
         display_name=_("Scope"),
         scope=Scope.content,
-        help="Scope of completion.  Marking a 'Course' scope Done component complete triggers course grading.", 
+        help="Scope of completion.  Marking a 'Course' scope Done component complete triggers course grading.",
         values=[
             {"display_name": "Section", "value": "block"},
             {"display_name": "Course", "value": "course"}
@@ -55,25 +55,29 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
     button_text_before = String(
         display_name=_("Button text (incomplete)"),
         scope=Scope.content,
-        help="Text displayed on the button before completion", 
+        help="Text displayed on the button before completion",
         default="Mark as complete"
     )
 
     button_text_after = String(
         display_name=_("Button text (complete)"),
         scope=Scope.content,
-        help="Text displayed on the button after completion", 
+        help="Text displayed on the button after completion",
         default="Mark as incomplete"
     )
 
     instructions = String(
         display_name=_("Instructions"),
         scope=Scope.content,
-        help="Additional instruction or other text displayed below the button", 
+        help="Additional instruction or other text displayed below the button",
         default=""
     )
 
-    editable_fields = ['align', 'done_scope', 'button_text_before', 'button_text_after', 'instructions']
+    editable_fields = [
+        'align', 'done_scope', 'button_text_before', 
+        'button_text_after', 'instructions'
+    ]
+
     has_score = True
 
     # pylint: disable=unused-argument
@@ -112,11 +116,12 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
                     if data['scope'] == 'course' and grade == 1:
                         # request grading on whole course if in the LMS with a real student
                         course_key = self.runtime.course_id
-                        cert_status = generate_user_certificates(student, course_key, course=None, insecure=False, 
-                                                                 generation_mode='batch', forced_grade=None)
-                        # if cert_status in ():
+                        cert_status = generate_user_certificates(
+                            student, course_key, course=None, insecure=False, 
+                            generation_mode='batch', forced_grade=None
+                        )
                         success = 'success'
-                            
+
         return {'state': self.done, 'success': success}
 
     def student_view(self, context=None):  # pylint: disable=unused-argument
@@ -131,8 +136,8 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
             """
             # https://stackoverflow.com/a/25699953
             css_content_re = r'''['"\n\\]'''
-            return re.sub(css_content_re, lambda m: '\\{:X} '.format(ord(m.group())), inputstr)    
-        
+            return re.sub(css_content_re, lambda m: '\\{:X} '.format(ord(m.group())), inputstr)
+
         button_text_before = css_content_escape(self.button_text_before)
         button_text_after = css_content_escape(self.button_text_after)
         status_button_text = self.button_text_before if self.done else self.button_text_after
@@ -173,7 +178,8 @@ class DoneXBlock(StudioEditableXBlockMixin, XBlock):
                   <done done_scope="block" align="left"> </done>
                   <done done_scope="block" align="right"> </done>
                   <done done_scope="block" align="center"> </done>
-                  <done done_scope="course" align="left" button_text_before="Complete course" button_text_after="Course completed!"> </done>
+                  <done done_scope="course" align="left" 
+                    button_text_before="Complete course" button_text_after="Course completed!"> </done>
                   <done done_scope="block" align="left" instructions="Some instructions"> </done>
                 </vertical_demo>
              """),

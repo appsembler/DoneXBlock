@@ -1,6 +1,8 @@
 """Setup for done XBlock."""
 
+
 import os
+
 from setuptools import setup
 
 
@@ -14,27 +16,51 @@ def package_data(pkg, root):
     return {pkg: data}
 
 
+def load_requirements(*requirements_paths):
+    """
+    Load all requirements from the specified requirements files.
+    Returns a list of requirement strings.
+    """
+    requirements = set()
+    for path in requirements_paths:
+        with open(path) as reqs:
+            requirements.update(
+                line.split('#')[0].strip() for line in reqs
+                if is_requirement(line.strip())
+            )
+    return list(requirements)
+
+
+with open('README.md') as readme:
+    long_description = readme.read()
+
+
+def is_requirement(line):
+    """
+    Return True if the requirement line is a package requirement;
+    that is, it is not blank, a comment, a URL, or an included file.
+    """
+    return line and not line.startswith(('-r', '#', '-e', 'git+', '-c'))
+
+
 setup(
     name='done-xblock',
-    version='0.2.0-unreleased',
+    version='2.0.5-unreleased-appsembler-course-completion',
     description='done XBlock',   # TODO: write a better description.
+    classifiers=[
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+    ],
     packages=[
         'done',
     ],
-    dependency_links=[
-        # At the moment of writing PyPI hosts outdated version of xblock-utils, hence git
-        # Replace dependency links with numbered versions when it's released on PyPI
-        'git+https://github.com/edx/xblock-utils.git@v1.0.2#egg=xblock-utils-1.0.2',
-        'git+https://github.com/edx/xblock-utils.git@v1.0.3#egg=xblock-utils-1.0.3',
-    ],
-    install_requires=[
-        'XBlock>=0.4.10,<2.0.0',
-        'xblock-utils>=1.0.2,<=1.0.3',
-    ],
+    install_requires=load_requirements('requirements/base.in'),
     entry_points={
         'xblock.v1': [
             'done = done:DoneXBlock',
         ]
     },
     package_data=package_data("done", "static"),
+    long_description=long_description,
+    long_description_content_type='text/markdown'
 )
